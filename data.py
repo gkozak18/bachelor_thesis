@@ -2,13 +2,14 @@ import pandas as pd
 from torchvision import transforms
 from torch.utils.data import Dataset, DataLoader
 import torch
+import torch.nn.functional as F
 from tqdm.notebook import tqdm
 import cv2
 import os
 
 
 class Dataset(Dataset):
-    def __init__(self, folder : str, size : tuple = (320, 320), save_in_ram : bool =True, device : str = "cuda"):
+    def __init__(self, folder : str, size : tuple = (320, 320), save_in_ram : bool =True, device : str = "cuda", float_target : bool = True):
         """
         folder: str
             Path to the folder containing the data
@@ -21,6 +22,7 @@ class Dataset(Dataset):
         """
         self.folder = folder
         self.device = device
+        self.float_target = float_target
         self.transform = transforms.Compose([
             transforms.ToTensor(),
             transforms.Resize(size)
@@ -43,6 +45,15 @@ class Dataset(Dataset):
     def __len__(self):
         return len(self.x)
     def __getitem__(self, idx):
-        x = self.transform(self.x[idx]).to(self.device)
-        y = torch.tensor([self.y[idx]]).to(self.device).float()
+        if not self.save_in_ram:
+            img = cv2.imread(self.x[idx])
+        else:
+            img = self.x[idx]
+        x = self.transform(img).to(self.device)
+        if self.float_target:
+            y = torch.tensor([self.y[idx]]).to(self.device).float()
+        else:
+            y = int(self.y[idx])
+            # y = F.one_hot(torch.tensor(y, dtype=torch.long), num_classes=4).to(self.device, dtype=torch.float32)
+            y = torch.tensor(y, dtype=torch.long, device=self.device)
         return x, y
