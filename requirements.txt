@@ -3,3 +3,8 @@ torchvision
 pandas 
 opencv-python
 tqdm
+matplotlib
+pyqt5
+pillow
+scipy
+scikit-learn
