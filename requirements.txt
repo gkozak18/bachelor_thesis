@@ -8,3 +8,4 @@ pyqt5
 pillow
 scipy
 scikit-learn
+captum
